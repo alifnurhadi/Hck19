@@ -1,0 +1,5 @@
+Link Dataset :
+https://www.kaggle.com/datasets/radheshyamkollipara/bank-customer-churn/data
+
+Link Deployment :
+https://huggingface.co/spaces/Alifnrhd/Milestone_2_alifnurhadi_Hck19
