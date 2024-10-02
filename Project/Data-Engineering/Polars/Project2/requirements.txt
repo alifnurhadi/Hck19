@@ -1,0 +1,7 @@
+polars
+pydantic
+sqlalchemy
+psycopg2-binary
+elasticsearch==7.13.0
+apache-airflow
+python-dotenv
