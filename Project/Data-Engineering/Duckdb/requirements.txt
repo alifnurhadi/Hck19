@@ -1,0 +1,7 @@
+polars
+pandas
+numpy
+apache-airflow==2.8.3
+psycopg2-binary
+duckdb
+SQLAlchemy
