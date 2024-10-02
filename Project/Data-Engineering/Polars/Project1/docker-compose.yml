@@ -1,0 +1,91 @@
+version: '3.8'
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: dockerfile
+  user: "${AIRFLOW_UID:-50000}:0"  # Adjust the user ID to avoid permission issues
+  env_file:
+    - .env
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./data:/opt/airflow/data
+    - ./data/clean:/opt/airflow/data/clean
+    - ./models:/opt/airflow/models
+    - ./airflow.cfg:/opt/airflow/airflow.cfg   # Ensure this is a file
+    - ./requirements.txt:/requirements.txt
+  command: bash -c "pip install -r /requirements.txt && airflow webserver"
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - final-project
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres_finpro
+    ports:
+      - "5400:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "final_project"]
+      interval: 5s
+      retries: 5
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - final-project
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    container_name: airflow-webserver
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    container_name: airflow-scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /opt/airflow/{logs,dags,plugins,data}
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,data}
+        airflow db init
+        airflow users create \
+          --username ${AIRFLOW__WEBSERVER__USERNAME} \
+          --password ${AIRFLOW__WEBSERVER__PASSWORD} \
+          --firstname Airflow \
+          --lastname Admin \
+          --role Admin \
+          --email admin@example.com
+        exec /entrypoint airflow version
+
+networks:
+  final-project:
+    driver: bridge
+
+volumes:
+  postgres-data:

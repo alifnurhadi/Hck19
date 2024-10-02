@@ -1,0 +1,22 @@
+polars
+pandas
+pydantic
+sqlalchemy
+psycopg2-binary
+apache-airflow
+python-dotenv
+streamlit==1.25.0
+speechrecognition==3.8.1
+pyttsx3==2.90
+langchain
+openai
+chromadb
+playsound
+jupyter
+ipykernel
+tiktoken
+langchain-community 
+langchain-openai 
+langchain-chroma
+faiss-cpu
+#python -m ipykernel install --user --name=myvenvspeechqa
